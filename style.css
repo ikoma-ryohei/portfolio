@@ -539,28 +539,6 @@ main {
   transition: opacity 0.3s var(--ease);
 }
 
-/* ---------- Information / News ---------- */
-
-.news-list li {
-  display: flex;
-  gap: 2rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.news-list time {
-  flex: 0 0 6.5rem;
-  color: var(--muted);
-  font-family: var(--prompt);
-  font-weight: 300;
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-}
-
-.news-list p {
-  margin: 0;
-}
-
 /* ---------- Works ---------- */
 
 .works-grid {
@@ -605,9 +583,8 @@ main {
   padding-bottom: 0.2em;
 }
 
-/* ---------- Exhibition / Biography ---------- */
+/* ---------- Career ---------- */
 
-.exhibition-list li,
 .bio-list li {
   display: flex;
   gap: 2rem;
@@ -615,7 +592,6 @@ main {
   border-bottom: 1px solid var(--line);
 }
 
-.exhibition-list time,
 .bio-list time {
   flex: 0 0 4rem;
   color: var(--muted);
@@ -623,18 +599,6 @@ main {
   font-weight: 300;
   font-size: 0.85rem;
   letter-spacing: 0.08em;
-}
-
-.exhibition-list h3 {
-  font-weight: 500;
-  font-size: 1rem;
-  margin: 0;
-}
-
-.exhibition-list div p {
-  margin: 0.2rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
 }
 
 .bio-list p {
