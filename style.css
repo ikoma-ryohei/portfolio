@@ -621,7 +621,7 @@ main {
 }
 
 .bio-list time {
-  flex: 0 0 4rem;
+  flex: 0 0 6.5rem;
   color: var(--muted);
   font-family: var(--prompt);
   font-weight: 300;
@@ -632,6 +632,25 @@ main {
 .bio-list p {
   margin: 0;
   font-size: 0.95rem;
+}
+
+.bio-sublist {
+  margin-top: 0.8rem;
+}
+
+.bio-sublist li {
+  position: relative;
+  padding-left: 1.1em;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.bio-sublist li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
 }
 
 /* ---------- Statement / Biography lead ---------- */
