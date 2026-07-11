@@ -5,14 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ryohei Ikoma | Portfolio</title>
 <meta name="description" content="Ryohei Ikoma — Portfolio">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500&family=Prompt:wght@100;200;300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header class="site-header">
-    <a class="site-logo" href="#top">Ryohei Ikoma</a>
-    <nav class="site-nav">
-      <ul>
+  <header class="header">
+    <span class="header__nav-trigger"></span>
+    <nav class="header__nav">
+      <ul class="header__nav__list">
         <li><a href="#information">Information</a></li>
         <li><a href="#works">Works</a></li>
         <li><a href="#exhibition">Exhibition</a></li>
@@ -21,10 +24,36 @@
         <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
-    <div class="lang-switch">
-      <a href="#" class="active">JP</a><span>/</span><a href="#">EN</a>
-    </div>
+    <a class="header__title" href="#top">Ryohei Ikoma</a>
+    <button class="header__button" type="button">Menu</button>
   </header>
+
+  <div class="menu">
+    <div class="menu__container">
+      <div class="menu__header">
+        <a class="menu__title" href="#top">Ryohei Ikoma</a>
+        <button class="menu__button" type="button">Close</button>
+      </div>
+      <nav class="menu__nav">
+        <ul class="menu__nav__list">
+          <li><a href="#information">Information</a></li>
+          <li><a href="#works">Works</a></li>
+          <li><a href="#exhibition">Exhibition</a></li>
+          <li><a href="#statement">Statement</a></li>
+          <li><a href="#biography">Biography</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+      <ul class="menu__links">
+        <li><a href="#" lang="ja">日本語</a></li>
+        <li><a href="#">English</a></li>
+        <li><a href="#">X</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">YouTube</a></li>
+        <li><a href="#">note</a></li>
+      </ul>
+    </div>
+  </div>
 
   <main id="top">
 
@@ -168,5 +197,6 @@
     <p>&copy; 2026 Ryohei Ikoma</p>
   </footer>
 
+  <script src="script.js"></script>
 </body>
 </html>
