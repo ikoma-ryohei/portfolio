@@ -4,38 +4,169 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ryohei Ikoma | Portfolio</title>
+<meta name="description" content="Ryohei Ikoma — Portfolio">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="hero">
-    <h1>Ryohei Ikoma</h1>
-    <p>Portfolio site</p>
+
+  <header class="site-header">
+    <a class="site-logo" href="#top">Ryohei Ikoma</a>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="#information">Information</a></li>
+        <li><a href="#works">Works</a></li>
+        <li><a href="#exhibition">Exhibition</a></li>
+        <li><a href="#statement">Statement</a></li>
+        <li><a href="#biography">Biography</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="lang-switch">
+      <a href="#" class="active">JP</a><span>/</span><a href="#">EN</a>
+    </div>
   </header>
 
-  <main>
-    <section id="about">
-      <h2>About</h2>
-      <p>ここに自己紹介を書いてください。</p>
+  <main id="top">
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>Ryohei Ikoma</h1>
+      <p class="hero-statement">
+        ここにステートメントの一行目が入ります，<br>
+        二行目のことば，コンセプト，<br>
+        三行目のことば，キーワードへの言及
+      </p>
     </section>
 
-    <section id="works">
-      <h2>Works</h2>
-      <ul class="works-list">
+    <!-- Information / News -->
+    <section id="information" class="section">
+      <h2>Information</h2>
+      <ul class="news-list">
         <li>
-          <h3>Project 1</h3>
-          <p>プロジェクトの説明をここに書いてください。</p>
+          <time datetime="2026-07-01">2026.07.01</time>
+          <p>お知らせのタイトルが入ります（展示・出演・掲載など）</p>
+        </li>
+        <li>
+          <time datetime="2026-06-15">2026.06.15</time>
+          <p>お知らせのタイトルが入ります（展示・出演・掲載など）</p>
+        </li>
+        <li>
+          <time datetime="2026-05-30">2026.05.30</time>
+          <p>お知らせのタイトルが入ります（展示・出演・掲載など）</p>
         </li>
       </ul>
     </section>
 
-    <section id="contact">
-      <h2>Contact</h2>
-      <p><a href="mailto:you@example.com">you@example.com</a></p>
+    <!-- Works -->
+    <section id="works" class="section">
+      <h2>Works</h2>
+      <div class="works-grid">
+        <a class="work-card" href="#">
+          <div class="work-thumb" aria-hidden="true"></div>
+          <h3>作品タイトル 01</h3>
+          <p class="work-meta">2026 — メディア / 素材</p>
+        </a>
+        <a class="work-card" href="#">
+          <div class="work-thumb" aria-hidden="true"></div>
+          <h3>作品タイトル 02</h3>
+          <p class="work-meta">2025 — メディア / 素材</p>
+        </a>
+        <a class="work-card" href="#">
+          <div class="work-thumb" aria-hidden="true"></div>
+          <h3>作品タイトル 03</h3>
+          <p class="work-meta">2025 — メディア / 素材</p>
+        </a>
+        <a class="work-card" href="#">
+          <div class="work-thumb" aria-hidden="true"></div>
+          <h3>作品タイトル 04</h3>
+          <p class="work-meta">2024 — メディア / 素材</p>
+        </a>
+        <a class="work-card" href="#">
+          <div class="work-thumb" aria-hidden="true"></div>
+          <h3>作品タイトル 05</h3>
+          <p class="work-meta">2024 — メディア / 素材</p>
+        </a>
+        <a class="work-card" href="#">
+          <div class="work-thumb" aria-hidden="true"></div>
+          <h3>作品タイトル 06</h3>
+          <p class="work-meta">2023 — メディア / 素材</p>
+        </a>
+      </div>
+      <p class="explore"><a href="#works">Explore →</a></p>
     </section>
+
+    <!-- Exhibition -->
+    <section id="exhibition" class="section">
+      <h2>Exhibition</h2>
+      <ul class="exhibition-list">
+        <li>
+          <time>2026</time>
+          <div>
+            <h3>展覧会タイトルが入ります</h3>
+            <p>会場名，都市 / 個展・グループ展</p>
+          </div>
+        </li>
+        <li>
+          <time>2025</time>
+          <div>
+            <h3>展覧会タイトルが入ります</h3>
+            <p>会場名，都市 / 個展・グループ展</p>
+          </div>
+        </li>
+        <li>
+          <time>2024</time>
+          <div>
+            <h3>展覧会タイトルが入ります</h3>
+            <p>会場名，都市 / 個展・グループ展</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Statement -->
+    <section id="statement" class="section">
+      <h2>Statement</h2>
+      <div class="statement-body">
+        <p>ここにアーティスト・ステートメント（あるいは活動のコンセプト）が入ります。制作や活動の背景にある考え方，問い，アプローチについて数段落で記述してください。</p>
+        <p>二段落目のプレースホルダです。テーマの掘り下げや，用いるメディア・手法への言及などをここに書きます。</p>
+      </div>
+    </section>
+
+    <!-- Biography -->
+    <section id="biography" class="section">
+      <h2>Biography</h2>
+      <div class="bio-lead">
+        <p>ここに略歴のリード文が入ります。肩書き，所属，専門分野などを 2〜3 文で記述してください。</p>
+      </div>
+      <ul class="bio-list">
+        <li><time>20XX</time><p>経歴・受賞・学位などが入ります</p></li>
+        <li><time>20XX</time><p>経歴・受賞・学位などが入ります</p></li>
+        <li><time>20XX</time><p>経歴・受賞・学位などが入ります</p></li>
+      </ul>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="section">
+      <h2>Contact</h2>
+      <p>お問い合わせは下記メールアドレスまでお願いします。</p>
+      <p class="contact-mail"><a href="mailto:you@example.com">you@example.com</a></p>
+      <ul class="social-links">
+        <li><a href="#">X</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">YouTube</a></li>
+        <li><a href="#">note</a></li>
+      </ul>
+    </section>
+
   </main>
 
-  <footer>
+  <footer class="site-footer">
+    <nav>
+      <a href="#">Site Policy</a>
+      <a href="#">Privacy</a>
+    </nav>
     <p>&copy; 2026 Ryohei Ikoma</p>
   </footer>
+
 </body>
 </html>
