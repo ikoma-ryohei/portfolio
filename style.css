@@ -653,6 +653,14 @@ main {
   left: 0;
 }
 
+.contact-services {
+  margin-bottom: 2rem;
+}
+
+.contact-services li {
+  color: var(--fg);
+}
+
 /* ---------- Statement / Biography lead ---------- */
 
 .statement-body p,
