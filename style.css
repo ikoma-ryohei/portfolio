@@ -52,6 +52,17 @@ ul {
   list-style: none;
 }
 
+/* ---------- Starfield background ---------- */
+
+.bg-stars {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* body の背景(#000)より手前，全コンテンツの背後 */
+  pointer-events: none;
+}
+
 /* ---------- Header (fixed, Prompt) ---------- */
 
 .header {
@@ -552,6 +563,23 @@ main {
   background: var(--thumb);
   border: 1px solid var(--line);
   margin-bottom: 0.9rem;
+  overflow: hidden;
+}
+
+.work-thumb img,
+.work-thumb iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+/* 正方形アイコンは切り抜かず余白付きで収める */
+.work-thumb--icon img {
+  object-fit: contain;
+  padding: 12%;
+  box-sizing: border-box;
 }
 
 .work-card h3 {

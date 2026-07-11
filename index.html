@@ -12,6 +12,8 @@
 </head>
 <body>
 
+  <canvas class="bg-stars" aria-hidden="true"></canvas>
+
   <header class="header">
     <span class="header__nav-trigger"></span>
     <nav class="header__nav">
@@ -64,38 +66,28 @@
     <section id="works" class="section">
       <h2>Works</h2>
       <div class="works-grid">
-        <a class="work-card" href="#">
-          <div class="work-thumb" aria-hidden="true"></div>
-          <h3>作品タイトル 01</h3>
-          <p class="work-meta">2026 — メディア / 素材</p>
+        <div class="work-card">
+          <div class="work-thumb">
+            <iframe src="https://www.youtube.com/embed/XK4n36yBRII" title="【Official MV】Lastman Standing / AINA" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+          <h3>Lastman Standing / AINA</h3>
+          <p class="work-meta">2026 — Music Video / YouTube</p>
+        </div>
+        <a class="work-card" href="https://note.com/ikoda/n/n9433a928dc81" target="_blank" rel="noopener">
+          <div class="work-thumb">
+            <img src="https://assets.st-note.com/production/uploads/images/238591980/rectangle_large_type_2_ac4ce9001a600c9567399e3af1e8149f.png?width=1280" alt="" loading="lazy">
+          </div>
+          <h3>劇場版「鬼滅の刃」無限城編 一貫した行動が人を感動させることが表現された作品</h3>
+          <p class="work-meta">2025 — 映画評 / note</p>
         </a>
-        <a class="work-card" href="#">
-          <div class="work-thumb" aria-hidden="true"></div>
-          <h3>作品タイトル 02</h3>
-          <p class="work-meta">2025 — メディア / 素材</p>
-        </a>
-        <a class="work-card" href="#">
-          <div class="work-thumb" aria-hidden="true"></div>
-          <h3>作品タイトル 03</h3>
-          <p class="work-meta">2025 — メディア / 素材</p>
-        </a>
-        <a class="work-card" href="#">
-          <div class="work-thumb" aria-hidden="true"></div>
-          <h3>作品タイトル 04</h3>
-          <p class="work-meta">2024 — メディア / 素材</p>
-        </a>
-        <a class="work-card" href="#">
-          <div class="work-thumb" aria-hidden="true"></div>
-          <h3>作品タイトル 05</h3>
-          <p class="work-meta">2024 — メディア / 素材</p>
-        </a>
-        <a class="work-card" href="#">
-          <div class="work-thumb" aria-hidden="true"></div>
-          <h3>作品タイトル 06</h3>
-          <p class="work-meta">2023 — メディア / 素材</p>
+        <a class="work-card" href="https://play.google.com/store/apps/details?id=com.bluestudio.filmemo&amp;hl=ja" target="_blank" rel="noopener">
+          <div class="work-thumb work-thumb--icon">
+            <img src="https://play-lh.googleusercontent.com/cu0e4JG0Rj9L1OBoayjVSdxHBRxyZa-5L_ISZyWnsBCXHkf3Iim9s076zIDvIy641C1LWmRe7wd9eJDZ6SAHjxw" alt="" loading="lazy">
+          </div>
+          <h3>映画感想メモ帳 — あなたの映画体験を記録しよう</h3>
+          <p class="work-meta">Android アプリ / Google Play</p>
         </a>
       </div>
-      <p class="explore"><a href="#works">Explore →</a></p>
     </section>
 
     <!-- Statement -->
@@ -143,5 +135,6 @@
   </footer>
 
   <script src="script.js"></script>
+  <script type="module" src="stars.js"></script>
 </body>
 </html>
