@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REQUEST FLOW — JavaScriptはどこで動くようになったか</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#06070C;
+  --panel:rgba(12,14,22,.72);
+  --line:rgba(120,150,190,.16);
+  --dim:#5D6B84;
+  --text:#C9D6E8;
+  --cyan:#25E4FF;
+  --magenta:#FF35B4;
+  --lime:#A8FF3E;
+  --amber:#FFC53D;
+  --fire:#FF5A1F;
+  --sans:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--void);color:var(--text);font-family:var(--sans);
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+#app{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto}
+
+/* ---- header ---- */
+header{padding:18px 22px 8px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;z-index:5}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--dim);text-transform:uppercase}
+.brand b{display:block;font-family:var(--sans);font-weight:900;font-size:clamp(15px,2.2vw,20px);
+  letter-spacing:-.01em;color:#EAF2FF;margin-top:6px}
+.hud{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--dim);text-align:right;line-height:2}
+.hud i{font-style:normal;color:#7E8DA6}
+.hud .live{color:var(--lime)}
+
+/* ---- stage ---- */
+.stage{position:relative;min-height:0}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#fx{pointer-events:none}
+
+.readout{
+  position:absolute;left:22px;bottom:18px;max-width:min(420px,60vw);
+  background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--cyan);
+  padding:14px 18px 16px;backdrop-filter:blur(8px);
+  transition:border-left-color .5s;
+}
+.readout .yr{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--cyan);transition:color .5s}
+.readout h2{margin:6px 0 8px;font-size:clamp(15px,2.2vw,19px);font-weight:900;line-height:1.5;color:#EAF2FF}
+.readout p{margin:0;font-size:13px;line-height:1.85;color:#93A3BC}
+.readout code{font-family:var(--mono);font-size:11.5px;color:var(--amber);background:rgba(255,197,61,.09);padding:1px 5px}
+
+/* ---- timeline ---- */
+footer{padding:10px 22px 20px;z-index:5}
+.rail{position:relative;display:flex;justify-content:space-between;align-items:flex-start;
+  gap:4px;padding-top:22px}
+.rail::before{content:"";position:absolute;top:26px;left:8px;right:8px;height:1px;background:var(--line)}
+.stop{position:relative;background:none;border:0;padding:0 2px;cursor:pointer;flex:1;
+  font-family:var(--mono);color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:9px}
+.stop .dot{width:9px;height:9px;border-radius:50%;background:#1A2130;border:1px solid #2E394D;
+  transition:all .35s;z-index:2}
+.stop .y{font-size:10.5px;letter-spacing:.06em;transition:color .35s;white-space:nowrap}
+.stop .n{font-size:9.5px;letter-spacing:.02em;color:#3F4A5E;transition:color .35s;
+  font-family:var(--sans);white-space:nowrap}
+.stop:hover .dot{border-color:var(--cyan)}
+.stop.on .dot{background:currentColor;border-color:currentColor;box-shadow:0 0 12px currentColor,0 0 26px currentColor}
+.stop.on .y{color:#EAF2FF;font-weight:700}
+.stop.on .n{color:#8A9AB4}
+.stop.past .dot{background:#33415A;border-color:#33415A}
+.controls{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.controls button{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  background:rgba(255,255,255,.03);color:var(--dim);border:1px solid var(--line);
+  padding:7px 14px;cursor:pointer;transition:all .25s}
+.controls button:hover{color:#EAF2FF;border-color:rgba(37,228,255,.5)}
+.controls button.play.on{color:var(--lime);border-color:rgba(168,255,62,.4)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+
+@media (max-width:760px){
+  header{padding:14px 14px 6px}
+  .hud{display:none}
+  .readout{left:14px;right:14px;max-width:none;bottom:12px;padding:12px 14px}
+  .readout p{font-size:12px;line-height:1.75}
+  footer{padding:8px 12px 14px}
+  .stop .n{display:none}
+  .stop .y{font-size:9.5px}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">Request Flow ／ 1995—2022
+      <b>JavaScriptは、どこで動くようになったか</b>
+    </div>
+    <div class="hud">
+      <div><i>RUNTIME</i> <span id="hudRuntime">browser only</span></div>
+      <div><i>FLOW</i> <span id="hudFlow" class="live">—</span></div>
+      <div><i>BLOCKED</i> <span id="hudBlocked">0</span></div>
+    </div>
+  </header>
+
+  <div class="stage" id="stage">
+    <canvas id="bg"></canvas>
+    <canvas id="fx"></canvas>
+    <div class="readout" id="readout">
+      <div class="yr" id="roYear">1995</div>
+      <h2 id="roTitle"></h2>
+      <p id="roDesc"></p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="rail" id="rail"></div>
+    <div class="controls">
+      <button id="prev">◀ 前へ</button>
+      <button id="play" class="play on">自動再生 中</button>
+      <button id="next">次へ ▶</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var C = {cyan:"#25E4FF", magenta:"#FF35B4", lime:"#A8FF3E", amber:"#FFC53D",
+         fire:"#FF5A1F", dim:"#3C4A63", red:"#FF3B3B"};
+
+/* ---------- eras ---------- */
+var ERAS = [
+ { year:"1995", nav:"誕生", accent:C.cyan,
+   title:"JavaScriptは、ページの外に出られない",
+   desc:"ブラウザに埋め込むために10日で設計された言語。動かせるのは開いているページの中だけで、通信も他のプロセスも扱えませんでした。",
+   nodes:[{id:"client",on:1,color:C.cyan,label:"BROWSER",sub:"ページの中"}],
+   orbit:{node:"client",color:C.cyan,rate:9,speed:.5},
+   edges:[], runtime:"browser only", flow:"in-page" },
+
+ { year:"2005", nav:"Ajax", accent:C.cyan,
+   title:"通信はできる。ただし受け取る側はJSではない",
+   desc:"XMLHttpRequest でページを読み込み直さずにサーバーを叩けるように。JavaScript は「送る側」になりましたが、返す側は PHP や Java のままです。",
+   nodes:[{id:"client",on:1,color:C.cyan,label:"BROWSER",sub:"JavaScript"},
+          {id:"srv",on:.45,color:C.dim,label:"SERVER",sub:"PHP / Java / Ruby"}],
+   edges:[{from:"client",to:"srv",color:C.cyan,rate:2.4,speed:.36},
+          {from:"srv",to:"client",color:C.dim,rate:2.4,speed:.36}],
+   runtime:"browser only", flow:"XHR" },
+
+ { year:"2009", nav:"Node.js", accent:C.lime,
+   title:"V8をブラウザから引きはがす",
+   desc:"Chrome の JS エンジンを単体で動かし、ファイルとネットワークの API を足したものが Node.js。ここで JavaScript は受け取る側にもなりました。",
+   nodes:[{id:"client",on:1,color:C.cyan,label:"BROWSER",sub:"JavaScript"},
+          {id:"srv",on:1,color:C.lime,label:"NODE.JS",sub:"JavaScript"}],
+   edges:[{from:"client",to:"srv",color:C.cyan,rate:4,speed:.5},
+          {from:"srv",to:"client",color:C.lime,rate:4,speed:.5}],
+   runtime:"browser + server", flow:"http.createServer" },
+
+ { year:"2010", nav:"Express", accent:C.magenta,
+   title:"Nodeの方言の上に、10年分の資産が積み上がる",
+   desc:"ミドルウェアを直列に通す型を決めた Express がデファクトに。同時にエコシステム全体が req / res という Node 固有の形へ固定されていきます。",
+   nodes:[{id:"client",on:1,color:C.cyan,label:"BROWSER",sub:"JavaScript"},
+          {id:"srv",on:1,color:C.magenta,label:"EXPRESS",sub:"req / res（Node方言）"}],
+   edges:[{from:"client",to:"srv",color:C.magenta,rate:6,speed:.52,gates:["logger","auth","router"]},
+          {from:"srv",to:"client",color:C.lime,rate:6,speed:.52}],
+   runtime:"node only", flow:"middleware chain" },
+
+ { year:"2018", nav:"分裂", accent:C.red,
+   title:"実行環境が、Nodeだけではなくなる",
+   desc:"Cloudflare Workers・Deno・Bun が登場。Workers はブラウザと同じ Request / Response を採用しました。Node 前提のコードは、そこで止まります。",
+   nodes:[{id:"client",on:1,color:C.cyan,label:"BROWSER",sub:"JavaScript"},
+          {id:"w",on:1,color:C.amber,label:"WORKERS",sub:"Web標準API"},
+          {id:"d",on:1,color:C.amber,label:"DENO / BUN",sub:"Web標準API"},
+          {id:"n",on:1,color:C.magenta,label:"NODE.JS",sub:"Node独自API"}],
+   edges:[{from:"client",to:"w",color:C.magenta,rate:5,speed:.5,blocked:.74},
+          {from:"client",to:"d",color:C.magenta,rate:5,speed:.5,blocked:.74},
+          {from:"client",to:"n",color:C.magenta,rate:5,speed:.5}],
+   runtime:"node / workers / deno / bun", flow:"express — 移植が必要" },
+
+ { year:"2022", nav:"Hono", accent:C.fire,
+   title:"Web標準だけを前提にすると、全部で流れる",
+   desc:"Hono の前提はひとつ。Request を受け取って Response を返す関数であること。Node 固有 API に依存しないので、同じコードがどのランタイムでも動きます。",
+   nodes:[{id:"client",on:1,color:C.cyan,label:"BROWSER",sub:"Request / Response"},
+          {id:"w",on:1,color:C.fire,label:"WORKERS",sub:"同じコード"},
+          {id:"d",on:1,color:C.fire,label:"DENO / BUN",sub:"同じコード"},
+          {id:"n",on:1,color:C.fire,label:"NODE.JS",sub:"同じコード"}],
+   edges:[{from:"client",to:"w",color:C.fire,rate:11,speed:.9},
+          {from:"client",to:"d",color:C.fire,rate:11,speed:.9},
+          {from:"client",to:"n",color:C.fire,rate:11,speed:.9},
+          {from:"w",to:"client",color:C.fire,rate:5,speed:.9},
+          {from:"d",to:"client",color:C.fire,rate:5,speed:.9},
+          {from:"n",to:"client",color:C.fire,rate:5,speed:.9}],
+   runtime:"どこでも", flow:"Request → Response" }
+];
+
+/* ---------- setup ---------- */
+var stage=document.getElementById("stage"),
+    bg=document.getElementById("bg"), fx=document.getElementById("fx"),
+    bctx=bg.getContext("2d"), fctx=fx.getContext("2d"),
+    W=0,H=0,DPR=1,narrow=false;
+
+function resize(){
+  var r=stage.getBoundingClientRect();
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=r.width; H=r.height; narrow=W<760;
+  [bg,fx].forEach(function(c){
+    c.width=Math.round(W*DPR); c.height=Math.round(H*DPR);
+    c.getContext("2d").setTransform(DPR,0,0,DPR,0,0);
+  });
+  layout();
+}
+
+var POS={};
+function layout(){
+  if(narrow){
+    POS={client:[.5,.12], srv:[.5,.36], w:[.2,.58], d:[.5,.58], n:[.8,.58]};
+  } else {
+    POS={client:[.15,.5], srv:[.5,.5], w:[.84,.2], d:[.84,.5], n:[.84,.8]};
+  }
+}
+function px(id){ var p=POS[id]||[.5,.5]; return {x:p[0]*W, y:p[1]*H}; }
+
+/* glow sprite cache */
+var sprites={};
+function sprite(color){
+  if(sprites[color]) return sprites[color];
+  var s=document.createElement("canvas"), R=32; s.width=s.height=R*2;
+  var g=s.getContext("2d"), grd=g.createRadialGradient(R,R,0,R,R,R);
+  grd.addColorStop(0,color); grd.addColorStop(.22,color);
+  grd.addColorStop(.45,hexA(color,.35)); grd.addColorStop(1,hexA(color,0));
+  g.fillStyle=grd; g.beginPath(); g.arc(R,R,R,0,7); g.fill();
+  sprites[color]=s; return s;
+}
+function hexA(h,a){
+  var n=parseInt(h.slice(1),16);
+  return "rgba("+(n>>16&255)+","+(n>>8&255)+","+(n&255)+","+a+")";
+}
+
+/* ---------- state ---------- */
+var idx=0, era=ERAS[0], parts=[], blast=[], blockedCount=0, playing=true, lastSwitch=0;
+
+function edgePath(e){
+  var a=px(e.from), b=px(e.to);
+  var mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+  var dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy)||1;
+  var bow=(e.to==="w"||e.to==="n"||e.from==="w"||e.from==="n")?len*0.10:0;
+  var sign=(e.to==="w"||e.from==="w")?-1:1;
+  return {a:a,b:b,c:{x:mx - dy/len*bow*sign, y:my + dx/len*bow*sign}};
+}
+function ptOn(p,t){
+  var u=1-t;
+  return {x:u*u*p.a.x+2*u*t*p.c.x+t*t*p.b.x, y:u*u*p.a.y+2*u*t*p.c.y+t*t*p.b.y};
+}
+
+function setEra(i,manual){
+  idx=(i+ERAS.length)%ERAS.length; era=ERAS[idx];
+  parts=[]; blast=[]; blockedCount=0; lastSwitch=performance.now();
+  document.getElementById("roYear").textContent=era.year;
+  document.getElementById("roTitle").textContent=era.title;
+  document.getElementById("roDesc").textContent=era.desc;
+  document.getElementById("readout").style.borderLeftColor=era.accent;
+  document.getElementById("roYear").style.color=era.accent;
+  document.getElementById("hudRuntime").textContent=era.runtime;
+  document.getElementById("hudFlow").textContent=era.flow;
+  document.getElementById("hudFlow").style.color=era.accent;
+  [].forEach.call(document.querySelectorAll(".stop"),function(el,k){
+    el.classList.toggle("on",k===idx);
+    el.classList.toggle("past",k<idx);
+    el.style.color=ERAS[k].accent;
+  });
+  if(manual) setPlaying(false);
+}
+
+/* ---------- rail ---------- */
+var rail=document.getElementById("rail");
+ERAS.forEach(function(e,k){
+  var b=document.createElement("button");
+  b.className="stop"; b.type="button";
+  b.innerHTML='<span class="dot"></span><span class="y">'+e.year+'</span><span class="n">'+e.nav+'</span>';
+  b.addEventListener("click",function(){ setEra(k,true); });
+  rail.appendChild(b);
+});
+document.getElementById("prev").addEventListener("click",function(){setEra(idx-1,true)});
+document.getElementById("next").addEventListener("click",function(){setEra(idx+1,true)});
+var playBtn=document.getElementById("play");
+function setPlaying(v){
+  playing=v; playBtn.classList.toggle("on",v);
+  playBtn.textContent = v ? "自動再生 中" : "自動再生 停止";
+  if(v) lastSwitch=performance.now();
+}
+playBtn.addEventListener("click",function(){ setPlaying(!playing); });
+window.addEventListener("keydown",function(ev){
+  if(ev.key==="ArrowRight"){setEra(idx+1,true)}
+  if(ev.key==="ArrowLeft"){setEra(idx-1,true)}
+  if(ev.key===" "){ev.preventDefault();setPlaying(!playing)}
+});
+
+/* ---------- draw background ---------- */
+function drawBg(t){
+  bctx.clearRect(0,0,W,H);
+  // grid
+  bctx.fillStyle="rgba(120,150,190,.055)";
+  var g=narrow?34:42;
+  for(var x=g/2;x<W;x+=g) for(var y=g/2;y<H;y+=g) bctx.fillRect(x,y,1,1);
+
+  // edges
+  era.edges.forEach(function(e){
+    var p=edgePath(e);
+    bctx.save();
+    bctx.strokeStyle=hexA(e.color,.16); bctx.lineWidth=1;
+    bctx.setLineDash([4,6]); bctx.lineDashOffset=-t*0.02;
+    bctx.beginPath(); bctx.moveTo(p.a.x,p.a.y);
+    bctx.quadraticCurveTo(p.c.x,p.c.y,p.b.x,p.b.y); bctx.stroke();
+    bctx.restore();
+
+    if(e.gates) e.gates.forEach(function(name,i){
+      var q=ptOn(p,.3+i*.2);
+      bctx.save(); bctx.translate(q.x,q.y); bctx.rotate(Math.PI/4);
+      bctx.strokeStyle=hexA(e.color,.5); bctx.lineWidth=1;
+      bctx.strokeRect(-5,-5,10,10); bctx.restore();
+      if(!narrow){
+        bctx.font="9px 'JetBrains Mono',monospace"; bctx.fillStyle=hexA(e.color,.45);
+        bctx.textAlign="center"; bctx.fillText(name, q.x, q.y-14);
+      }
+    });
+
+    if(e.blocked){
+      var q=ptOn(p,e.blocked), pu=(Math.sin(t/220)+1)/2;
+      bctx.save(); bctx.translate(q.x,q.y);
+      bctx.strokeStyle=hexA(C.red,.45+pu*.4); bctx.lineWidth=2;
+      bctx.beginPath(); bctx.moveTo(-7,-7); bctx.lineTo(7,7);
+      bctx.moveTo(7,-7); bctx.lineTo(-7,7); bctx.stroke(); bctx.restore();
+    }
+  });
+
+  // nodes
+  era.nodes.forEach(function(n){
+    var q=px(n.id), r=narrow?20:26, pulse=1+Math.sin(t/700+q.x)*.03;
+    bctx.save();
+    bctx.globalAlpha=n.on;
+    bctx.strokeStyle=hexA(n.color,.85); bctx.lineWidth=1.4;
+    bctx.beginPath(); bctx.arc(q.x,q.y,r*pulse,0,7); bctx.stroke();
+    bctx.strokeStyle=hexA(n.color,.18);
+    bctx.beginPath(); bctx.arc(q.x,q.y,r*pulse+7,0,7); bctx.stroke();
+    bctx.fillStyle=hexA(n.color,.07);
+    bctx.beginPath(); bctx.arc(q.x,q.y,r*pulse,0,7); bctx.fill();
+
+    bctx.textAlign="center";
+    bctx.font="700 "+(narrow?9:10.5)+"px 'JetBrains Mono',monospace";
+    bctx.fillStyle=hexA(n.color,.95);
+    bctx.fillText(n.label, q.x, q.y+r+(narrow?17:22));
+    bctx.font=(narrow?9:10)+"px 'Zen Kaku Gothic New',sans-serif";
+    bctx.fillStyle="rgba(147,163,188,.75)";
+    bctx.fillText(n.sub, q.x, q.y+r+(narrow?30:38));
+    bctx.restore();
+  });
+}
+
+/* ---------- particles ---------- */
+function spawn(dt,t){
+  era.edges.forEach(function(e){
+    e._acc=(e._acc||0)+e.rate*dt;
+    while(e._acc>=1){ e._acc-=1; parts.push({e:e,t:0,v:e.speed*(.85+Math.random()*.3)}); }
+  });
+  if(era.orbit){
+    var o=era.orbit; o._acc=(o._acc||0)+o.rate*dt;
+    while(o._acc>=1){ o._acc-=1;
+      parts.push({orbit:true,color:o.color,a:Math.random()*7,
+                  r:(narrow?32:44)+Math.random()*(narrow?16:26),
+                  v:o.speed*(.6+Math.random()*.8),life:1}); }
+  }
+}
+function update(dt){
+  for(var i=parts.length-1;i>=0;i--){
+    var p=parts[i];
+    if(p.orbit){
+      p.a+=p.v*dt; p.life-=dt*.22;
+      if(p.life<=0) parts.splice(i,1);
+      continue;
+    }
+    p.t+=p.v*dt;
+    if(p.e.blocked && p.t>=p.e.blocked){
+      var path=edgePath(p.e), q=ptOn(path,p.e.blocked);
+      blast.push({x:q.x,y:q.y,life:1});
+      blockedCount++; parts.splice(i,1); continue;
+    }
+    if(p.t>=1) parts.splice(i,1);
+  }
+  for(var j=blast.length-1;j>=0;j--){
+    blast[j].life-=dt*2.2; if(blast[j].life<=0) blast.splice(j,1);
+  }
+}
+function drawFx(){
+  fctx.globalCompositeOperation="destination-out";
+  fctx.fillStyle="rgba(0,0,0,.26)"; fctx.fillRect(0,0,W,H);
+  fctx.globalCompositeOperation="lighter";
+
+  parts.forEach(function(p){
+    var x,y,color,alpha=1,size=1;
+    if(p.orbit){
+      var c=px("client");
+      x=c.x+Math.cos(p.a)*p.r; y=c.y+Math.sin(p.a)*p.r*(narrow?.5:.55);
+      color=p.color; alpha=Math.max(0,p.life); size=.85;
+    } else {
+      var q=ptOn(edgePath(p.e),p.t);
+      x=q.x; y=q.y; color=p.e.color;
+      alpha=Math.min(1,Math.sin(Math.min(p.t,1)*Math.PI)*2.4);
+    }
+    var s=sprite(color), R=(narrow?15:19)*size;
+    fctx.globalAlpha=alpha*.9;
+    fctx.drawImage(s,x-R,y-R,R*2,R*2);
+    fctx.globalAlpha=alpha;
+    fctx.fillStyle="#FFFFFF";
+    fctx.beginPath(); fctx.arc(x,y,narrow?1.5:1.9,0,7); fctx.fill();
+  });
+
+  blast.forEach(function(b){
+    var s=sprite(C.red), R=(1-b.life)*34+8;
+    fctx.globalAlpha=b.life*.8;
+    fctx.drawImage(s,b.x-R,b.y-R,R*2,R*2);
+  });
+  fctx.globalAlpha=1;
+}
+
+/* ---------- loop ---------- */
+var last=performance.now(), hudT=0;
+function frame(now){
+  var dt=Math.min((now-last)/1000,.05); last=now;
+  spawn(dt,now); update(dt); drawBg(now); drawFx();
+  hudT+=dt;
+  if(hudT>.2){ hudT=0; document.getElementById("hudBlocked").textContent=blockedCount; }
+  if(playing && now-lastSwitch>7000) setEra(idx+1);
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener("resize",resize);
+resize(); setEra(0); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
