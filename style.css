@@ -611,6 +611,64 @@ main {
   padding-bottom: 0.2em;
 }
 
+/* ---------- Notes ---------- */
+
+.notes-lead {
+  max-width: 640px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: -1.5rem 0 2.5rem;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 2.5rem 2rem;
+}
+
+.note-card__thumb {
+  aspect-ratio: 4 / 3;
+  background: #05060b;
+  border: 1px solid var(--line);
+  margin-bottom: 0.9rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.note-card__thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(33, 230, 255, 0.2), transparent 55%),
+    linear-gradient(300deg, rgba(255, 79, 216, 0.18), transparent 55%);
+}
+
+.note-card__thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.note-card h3 {
+  font-weight: 500;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.note-meta {
+  margin: 0.2rem 0 0;
+  font-family: var(--prompt);
+  font-weight: 300;
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
 /* ---------- Career ---------- */
 
 .bio-list li {

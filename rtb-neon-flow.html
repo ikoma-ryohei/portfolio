@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RTB FLOW — 100msの広告オークション</title>
+<style>
+  :root{
+    --void:#05060B;
+    --panel:#0A0D18;
+    --grid:#161E33;
+    --edge:#232D4A;
+    --req:#21E6FF;   /* ビッドリクエスト */
+    --bid:#FF4FD8;   /* 入札レスポンス */
+    --win:#FFC53D;   /* 落札・配信 */
+    --data:#8B6BFF;  /* オーディエンスデータ */
+    --dim:#5C6786;
+    --ink:#E8EEFF;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    --sans: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:48px 48px;
+    background-position:center;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 40%, transparent 20%, rgba(5,6,11,.85) 75%);
+  }
+  .wrap{position:relative;max-width:1240px;margin:0 auto;padding:20px 16px 40px;min-height:100%}
+
+  /* ── ヘッダー ── */
+  header{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--edge)}
+  h1{
+    margin:0;font-size:clamp(22px,4.4vw,38px);font-weight:900;letter-spacing:-.03em;line-height:1;
+  }
+  h1 em{font-style:normal;color:var(--req);text-shadow:0 0 18px rgba(33,230,255,.55)}
+  .sub{margin:8px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    background:transparent;color:var(--ink);border:1px solid var(--edge);border-radius:2px;
+    padding:8px 12px;cursor:pointer;transition:.15s;
+  }
+  button:hover{border-color:var(--req);color:var(--req)}
+  button:focus-visible{outline:2px solid var(--req);outline-offset:2px}
+  button[aria-pressed="true"]{background:var(--req);color:#03121a;border-color:var(--req)}
+  .speed{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.12em}
+  input[type=range]{width:104px;accent-color:var(--req);background:transparent}
+
+  /* ── タイムルーラー ── */
+  .ruler{margin:18px 0 6px;border:1px solid var(--edge);background:var(--panel);border-radius:3px;padding:9px 12px}
+  .ruler-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--dim)}
+  .track{position:relative;height:9px;margin-top:7px;background:#0E1424;border-radius:1px;overflow:hidden}
+  .track i{position:absolute;top:0;bottom:0;left:0;width:0;display:block}
+  .tick{position:absolute;top:0;bottom:0;width:1px;background:var(--edge)}
+  .phase-label{margin-top:7px;font-family:var(--mono);font-size:11px;color:var(--ink);letter-spacing:.08em;min-height:15px}
+  .phase-label span{color:var(--dim)}
+
+  /* ── ステージ ── */
+  .stage{position:relative;margin-top:10px;display:grid;gap:14px;
+    grid-template-columns:0.85fr 1fr 1.15fr 1.25fr 0.85fr;align-items:start}
+  canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+  .lane{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .lane-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase;padding-left:2px}
+
+  .node{
+    position:relative;z-index:2;background:var(--panel);border:1px solid var(--edge);border-radius:3px;
+    padding:11px 11px 12px;cursor:pointer;transition:border-color .2s, box-shadow .2s, transform .2s;
+    text-align:left;width:100%;font-family:var(--sans);color:inherit;
+  }
+  .node:hover,.node:focus-visible{border-color:var(--accent,var(--req));box-shadow:0 0 22px -6px var(--accent,var(--req));outline:none}
+  .node.sel{border-color:var(--accent,var(--req));box-shadow:0 0 0 1px var(--accent,var(--req)) inset}
+  .node .role{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--accent,var(--dim));text-transform:uppercase}
+  .node .name{font-size:15px;font-weight:800;letter-spacing:-.01em;margin-top:5px;line-height:1.25}
+  .node .meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;letter-spacing:.04em}
+  .node.pulse{animation:pop .45s ease-out}
+  @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.035)}100%{transform:scale(1)}}
+  .node.pulse::after{content:"";position:absolute;inset:-1px;border-radius:3px;border:1px solid var(--accent);animation:fadeout .45s ease-out forwards;pointer-events:none}
+  @keyframes fadeout{from{opacity:.9}to{opacity:0}}
+
+  .dsp-grid{display:flex;flex-direction:column;gap:8px}
+  .dsp .name{font-size:13.5px}
+  .bidchip{font-family:var(--mono);font-size:10px;letter-spacing:.04em;margin-top:6px;color:var(--dim);min-height:13px}
+  .bidchip.b{color:var(--bid)} .bidchip.w{color:var(--win)} .bidchip.t{color:#FF5F5F}
+
+  /* 価格ラダー（シグネチャ） */
+  .ladder{margin-top:9px;border-top:1px dashed var(--edge);padding-top:9px}
+  .lrow{display:grid;grid-template-columns:52px 1fr 44px;gap:7px;align-items:center;margin-bottom:4px;font-family:var(--mono);font-size:10px}
+  .lrow b{font-weight:500;color:var(--dim);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lbar{height:7px;background:linear-gradient(90deg,rgba(255,79,216,.75),rgba(255,79,216,.15));border-radius:1px;transition:width .25s}
+  .lrow.win .lbar{background:linear-gradient(90deg,var(--win),rgba(255,197,61,.2));box-shadow:0 0 12px -2px var(--win)}
+  .lrow.win b{color:var(--win)}
+  .lrow.out .lbar{background:#2A3350}.lrow.out b,.lrow.out i{color:#3E4767}
+  .lrow i{font-style:normal;text-align:right;color:var(--ink)}
+  .clear{font-family:var(--mono);font-size:10px;color:var(--win);letter-spacing:.06em;margin-top:8px;border-top:1px solid rgba(255,197,61,.35);padding-top:6px}
+  .clear span{color:var(--dim)}
+
+  /* ── 下部パネル ── */
+  .panels{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-top:16px}
+  .panel{background:var(--panel);border:1px solid var(--edge);border-radius:3px;padding:12px 13px;min-width:0}
+  .panel h2{margin:0 0 9px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase;font-weight:500}
+  .log{font-family:var(--mono);font-size:11px;line-height:1.75;height:172px;overflow:hidden;color:var(--dim)}
+  .log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid rgba(35,45,74,.4);padding-bottom:1px}
+  .log .w{color:var(--win)} .log .id{color:var(--req)} .log .ms{color:var(--bid)}
+  .explain .title{font-size:17px;font-weight:800;letter-spacing:-.01em;margin-bottom:2px}
+  .explain .en{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--accent,var(--dim));text-transform:uppercase;margin-bottom:9px}
+  .explain p{margin:0 0 9px;font-size:13.5px;line-height:1.75;color:#BCC6E0}
+  .explain .kv{font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.85}
+  .explain .kv b{color:var(--ink);font-weight:500}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim)}
+  .legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+  footer{margin-top:18px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:#39425F;text-transform:uppercase}
+
+  @media (max-width:860px){
+    .stage{grid-template-columns:1fr 1fr;gap:12px}
+    .lane-adv{grid-column:span 2}
+    .panels{grid-template-columns:1fr}
+    .log{height:132px}
+  }
+  @media (max-width:560px){
+    .stage{grid-template-columns:1fr}
+    .lane-adv{grid-column:auto}
+    .dsp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>ネオンで見る<em>RTB</em>。<br>1回の表示は100msで競り落とされる。</h1>
+      <p class="sub">Real-Time Bidding · SSP → Exchange → DSP</p>
+    </div>
+    <div class="controls">
+      <button id="play" aria-pressed="true">一時停止</button>
+      <button id="step">1回だけ流す</button>
+      <div class="speed">
+        <label for="sp">速度</label>
+        <input id="sp" type="range" min="0.2" max="1.6" step="0.1" value="0.7">
+        <span id="spv">0.7×</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="ruler">
+    <div class="ruler-top"><span>0ms</span><span>25</span><span>50</span><span>75</span><span>100ms · 入札の締切</span></div>
+    <div class="track" id="track">
+      <div class="tick" style="left:25%"></div><div class="tick" style="left:50%"></div><div class="tick" style="left:75%"></div>
+    </div>
+    <div class="phase-label" id="phase"><span>待機中</span></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="wire"></canvas>
+
+    <div class="lane">
+      <div class="lane-tag">01 · 在庫が生まれる</div>
+      <button class="node" data-key="user" style="--accent:var(--req)">
+        <div class="role">Visitor</div>
+        <div class="name">訪問者のブラウザ</div>
+        <div class="meta" id="m-user">imp 0</div>
+      </button>
+    </div>
+
+    <div class="lane">
+      <div class="lane-tag">02 · 媒体側で売る</div>
+      <button class="node" data-key="ssp" style="--accent:var(--req)">
+        <div class="role">SSP</div>
+        <div class="name">パブリッシャー<br>プラットフォーム</div>
+        <div class="meta" id="m-ssp">収益 $0.00</div>
+      </button>
+    </div>
+
+    <div class="lane">
+      <div class="lane-tag">03 · 競りの会場</div>
+      <button class="node" data-key="exch" style="--accent:var(--win)">
+        <div class="role">Ad Exchange</div>
+        <div class="name">アドエクスチェンジ</div>
+        <div class="meta" id="m-exch">底値 $1.20 CPM</div>
+        <div class="ladder" id="ladder"></div>
+        <div class="clear" id="clear"><span>清算価格 —</span></div>
+      </button>
+    </div>
+
+    <div class="lane">
+      <div class="lane-tag">04 · 広告主側で買う</div>
+      <div class="dsp-grid" id="dsps"></div>
+      <button class="node" data-key="dmp" style="--accent:var(--data)">
+        <div class="role">DMP / CDP</div>
+        <div class="name">オーディエンスデータ</div>
+        <div class="meta">セグメント同期</div>
+      </button>
+    </div>
+
+    <div class="lane lane-adv">
+      <div class="lane-tag">05 · 予算の出どころ</div>
+      <button class="node" data-key="adv" style="--accent:var(--win)">
+        <div class="role">Advertiser</div>
+        <div class="name">広告主</div>
+        <div class="meta" id="m-adv">消化 $0.00</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--req);box-shadow:0 0 8px var(--req)"></i>ビッドリクエスト</span>
+    <span><i style="background:var(--bid);box-shadow:0 0 8px var(--bid)"></i>入札レスポンス</span>
+    <span><i style="background:var(--win);box-shadow:0 0 8px var(--win)"></i>落札・広告配信</span>
+    <span><i style="background:var(--data);box-shadow:0 0 8px var(--data)"></i>オーディエンスデータ</span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h2>オークションログ</h2>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="panel explain" id="explain"></div>
+  </div>
+
+  <footer>ノードをタップすると役割を表示 · 数値はすべてダミー</footer>
+</div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ───────── データ ───────── */
+const DSPS=[
+  {id:'dsp0',name:'DSP Kite',   adv:'飲料ブランド'},
+  {id:'dsp1',name:'DSP Nova',   adv:'ECモール'},
+  {id:'dsp2',name:'DSP Orbit',  adv:'ゲームアプリ'},
+  {id:'dsp3',name:'DSP Pulse',  adv:'自動車'},
+];
+const EXPLAIN={
+  user:{en:'Visitor / Inventory',t:'訪問者のブラウザ',c:'var(--req)',
+    p:['ページが開いた瞬間、そこに1枠の「広告在庫」が生まれます。RTBはこの1回の表示ごとに競りをします。','ブラウザから出るのはURL、デバイス、おおよその地域、広告枠のサイズなど。誰が買うかはこの後100msで決まります。'],
+    kv:[['売られるもの','1インプレッション'],['所要時間','約100ms'],['回数','ページ表示ごと']]},
+  ssp:{en:'Supply Side Platform',t:'SSP（媒体側）',c:'var(--req)',
+    p:['媒体（メディア）の味方。<b>枠を高く売る</b>のが仕事です。','広告枠の情報をビッドリクエストにまとめ、エクスチェンジへ渡します。最低落札価格（フロアプライス）を設定して、安売りを防ぎます。'],
+    kv:[['立場','売り手'],['守るもの','媒体の収益'],['主な設定','フロアプライス・除外広告主']]},
+  exch:{en:'Ad Exchange / Auction',t:'アドエクスチェンジ',c:'var(--win)',
+    p:['売り手と買い手が出会う競りの会場。SSPからのリクエストを多数のDSPへ一斉に配り、返ってきた入札額を並べて勝者を決めます。','多くは<b>セカンドプライス方式</b>。1位が払うのは自分の入札額ではなく、2位の額＋$0.01です。だから正直な額で入札できます。'],
+    kv:[['判定','最高額 かつ 底値以上'],['清算','2位の額 + $0.01'],['締切','約100ms（超過は失格）']]},
+  dsp:{en:'Demand Side Platform',t:'DSP（広告主側）',c:'var(--bid)',
+    p:['広告主の味方。<b>安く効率よく買う</b>のが仕事です。','届いたリクエストを見て「この人に、この枠で、いくら出すか」を数十msで判断。予算・ターゲティング条件・推定コンバージョン率から入札額を計算します。'],
+    kv:[['立場','買い手'],['判断材料','ユーザー属性・枠の質・残予算'],['返すもの','入札額とクリエイティブ']]},
+  dmp:{en:'Data Management',t:'DMP / CDP',c:'var(--data)',
+    p:['「この人はどんな人か」を貯めて、DSPに渡すデータ基盤。旅行検討中、既存顧客、カート放棄——といったセグメントを作ります。','競りの最中には動きません。事前に同期されたセグメントを、DSPが入札額の計算に使います。'],
+    kv:[['タイミング','オークション前に同期'],['使われ方','入札額の重み付け'],['近い仕組み','自社データのCDP連携']]},
+  adv:{en:'Advertiser',t:'広告主',c:'var(--win)',
+    p:['予算とクリエイティブを出す当事者。落札されたぶんだけ予算が消化されます。','広告主が払った金額から、DSP手数料・エクスチェンジ手数料・SSP手数料が引かれ、残りが媒体の収益になります。'],
+    kv:[['支払う','落札した清算価格'],['受け取る','インプレッション/クリック'],['差分','各プラットフォームの手数料']]},
+};
+
+/* ───────── DSPノード生成 ───────── */
+const dspWrap=$('#dsps');
+DSPS.forEach(d=>{
+  const b=document.createElement('button');
+  b.className='node dsp'; b.dataset.key=d.id; b.style.setProperty('--accent','var(--bid)');
+  b.innerHTML=`<div class="role">DSP</div><div class="name">${d.name}</div>
+    <div class="meta">${d.adv}</div><div class="bidchip" id="c-${d.id}">待機</div>`;
+  dspWrap.appendChild(b);
+});
+
+/* ───────── ノード座標 ───────── */
+const stage=$('#stage'), cv=$('#wire'), ctx=cv.getContext('2d');
+let rects={}, dpr=1;
+function measure(){
+  const s=stage.getBoundingClientRect();
+  dpr=Math.min(devicePixelRatio||1,2);
+  cv.width=s.width*dpr; cv.height=s.height*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  rects={};
+  $$('.node').forEach(n=>{
+    const r=n.getBoundingClientRect();
+    rects[n.dataset.key]={x:r.left-s.left,y:r.top-s.top,w:r.width,h:r.height,el:n};
+  });
+}
+addEventListener('resize',measure);
+
+function anchors(a,b){
+  const A=rects[a],B=rects[b]; if(!A||!B)return null;
+  const ac={x:A.x+A.w/2,y:A.y+A.h/2}, bc={x:B.x+B.w/2,y:B.y+B.h/2};
+  const dx=bc.x-ac.x, dy=bc.y-ac.y;
+  let p0,p1;
+  if(Math.abs(dx)>Math.abs(dy)){
+    p0={x:dx>0?A.x+A.w:A.x, y:ac.y};
+    p1={x:dx>0?B.x:B.x+B.w, y:bc.y};
+  }else{
+    p0={x:ac.x, y:dy>0?A.y+A.h:A.y};
+    p1={x:bc.x, y:dy>0?B.y:B.y+B.h};
+  }
+  const mx=(p0.x+p1.x)/2, my=(p0.y+p1.y)/2;
+  const nx=-(p1.y-p0.y), ny=(p1.x-p0.x);
+  const len=Math.hypot(nx,ny)||1, bow=Math.min(38,len*0.14);
+  return [p0,{x:mx+nx/len*bow*0.5,y:my+ny/len*bow*0.5},p1];
+}
+const bez=(p,t)=>{const m=1-t;return{
+  x:m*m*p[0].x+2*m*t*p[1].x+t*t*p[2].x,
+  y:m*m*p[0].y+2*m*t*p[1].y+t*t*p[2].y};};
+
+/* ───────── 状態 ───────── */
+let running=!reduce, speed=+$('#sp').value, sim=0, lastRT=0;
+let auctions=[], nextAt=0, seq=0;
+let totals={imp:0,pub:0,adv:0};
+const MS2S=0.030; // 100ms → 3.0秒
+
+function rnd(a,b){return a+Math.random()*(b-a)}
+function hex(n){return Math.floor(Math.random()*16**n).toString(16).toUpperCase().padStart(n,'0')}
+
+function newAuction(){
+  const floor=+rnd(0.8,1.8).toFixed(2);
+  const bids=DSPS.map(d=>{
+    const participate=Math.random()<0.88;
+    const think=rnd(12,58);
+    const timeout=think>46 && Math.random()<0.5;
+    return {dsp:d.id,name:d.name,participate,
+      price:participate?+rnd(0.4,4.6).toFixed(2):0,
+      back:28+think, timeout};
+  });
+  const valid=bids.filter(b=>b.participate&&!b.timeout&&b.price>=floor)
+                  .sort((a,b)=>b.price-a.price);
+  const win=valid[0]||null;
+  const second=valid[1]?valid[1].price:floor;
+  const clear=win?+Math.min(win.price,second+0.01).toFixed(2):0;
+  return {id:hex(4),t:0,floor,bids,win,clear,done:false,logged:false,fired:{},
+          latency:Math.round(rnd(88,124))};
+}
+
+/* ───────── パーティクル ───────── */
+const P=[];
+function emit(from,to,color,t0,t1,size=3.2,label=null){
+  P.push({from,to,color,t0,t1,size,label});
+}
+function schedule(a){
+  const W=a.win;
+  emit('user','ssp','req',0,9);
+  emit('ssp','exch','req',10,20);
+  a.bids.forEach(b=>{
+    emit('exch',b.dsp,'req',21,29,2.6);
+    if(b.participate&&!b.timeout) emit(b.dsp,'exch','bid',b.back,b.back+9,3,'$'+b.price.toFixed(2));
+  });
+  if(Math.random()<0.9) DSPS.forEach((d,i)=>emit('dmp',d.id,'data',rnd(0,70),rnd(75,95),2,null));
+  if(W){
+    emit('exch',W.dsp,'win',102,110,3.4);
+    emit('adv',W.dsp,'win',104,112,2.6);
+    emit(W.dsp,'exch','win',112,120,3.6,'CREATIVE');
+    emit('exch','ssp','win',120,128,3.6);
+    emit('ssp','user','win',128,138,4);
+  }
+}
+function fire(key,color){
+  const r=rects[key]; if(!r)return;
+  r.el.style.setProperty('--accent',`var(--${color})`);
+  r.el.classList.remove('pulse'); void r.el.offsetWidth; r.el.classList.add('pulse');
+}
+
+/* ───────── UI 更新 ───────── */
+const ladder=$('#ladder'), clearEl=$('#clear'), logEl=$('#log'), track=$('#track'), phaseEl=$('#phase');
+let shown=null;
+function paintLadder(a){
+  if(shown!==a.id){shown=a.id;ladder.innerHTML='';
+    a.bids.forEach(b=>{
+      const row=document.createElement('div');row.className='lrow';row.id='r-'+a.id+b.dsp;
+      row.innerHTML=`<b>${b.name.replace('DSP ','')}</b><span class="lbar" style="width:0"></span><i>—</i>`;
+      ladder.appendChild(row);
+    });
+    clearEl.innerHTML='<span>入札受付中…</span>';
+    $('#m-exch').textContent=`底値 $${a.floor.toFixed(2)} CPM`;
+  }
+}
+function revealBid(a,b){
+  const row=$('#r-'+a.id+b.dsp); if(!row)return;
+  if(!b.participate||b.timeout){row.className='lrow out';row.querySelector('i').textContent=b.timeout?'timeout':'no bid';return;}
+  row.querySelector('.lbar').style.width=Math.max(6,Math.min(100,b.price/4.8*100))+'%';
+  row.querySelector('i').textContent='$'+b.price.toFixed(2);
+  if(b.price<a.floor){row.className='lrow out';row.querySelector('i').textContent='$'+b.price.toFixed(2)+' ↓';}
+  const chip=$('#c-'+b.dsp); if(chip){chip.className='bidchip b';chip.textContent='入札 $'+b.price.toFixed(2);}
+}
+function markLosers(a){
+  a.bids.forEach(b=>{
+    const chip=$('#c-'+b.dsp); if(!chip)return;
+    if(a.win&&b.dsp===a.win.dsp){chip.className='bidchip w';chip.textContent='落札 $'+a.clear.toFixed(2);}
+    else if(b.timeout){chip.className='bidchip t';chip.textContent='タイムアウト';}
+    else{chip.className='bidchip';chip.textContent='失注';}
+  });
+  if(a.win){const r=$('#r-'+a.id+a.win.dsp);if(r)r.className='lrow win';
+    clearEl.innerHTML=`落札 ${a.win.name} · 清算 $${a.clear.toFixed(2)} <span>（2位+$0.01）</span>`;}
+  else clearEl.innerHTML='<span>不成立 — 底値に届かず</span>';
+}
+function addLog(a){
+  const now=new Date();
+  const ts=`${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}.${String(now.getMilliseconds()).padStart(3,'0')}`;
+  const n=a.bids.filter(b=>b.participate&&!b.timeout).length;
+  const res=a.win?`落札 <span class="w">${a.win.name} $${a.clear.toFixed(2)}</span>`:'<span>不成立</span>';
+  const d=document.createElement('div');
+  d.innerHTML=`${ts} <span class="id">#${a.id}</span> 底値$${a.floor.toFixed(2)} 入札${n} ${res} <span class="ms">${a.latency}ms</span>`;
+  logEl.prepend(d); while(logEl.children.length>9)logEl.lastChild.remove();
+  if(a.win){
+    totals.imp++; totals.adv+=a.clear/1000*1000; totals.pub+=a.clear*0.68;
+    $('#m-user').textContent='imp '+totals.imp;
+    $('#m-ssp').textContent='収益 $'+totals.pub.toFixed(2);
+    $('#m-adv').textContent='消化 $'+totals.adv.toFixed(2);
+  }
+}
+const PHASES=[[0,10,'ページ表示 → 広告リクエスト','在庫が生まれる'],
+  [10,21,'SSP がビッドリクエストを送信','枠の情報＋フロアプライス'],
+  [21,30,'エクスチェンジが全DSPへ一斉配信','買い手を募る'],
+  [30,95,'各DSPが入札額を計算して応札','ターゲティングと予算で判断'],
+  [95,102,'締切 → 落札者の決定','セカンドプライスで清算'],
+  [102,140,'クリエイティブを配信','ブラウザに広告が表示']];
+function paintPhase(a){
+  if(!a){phaseEl.innerHTML='<span>待機中</span>';track.querySelectorAll('i').forEach(e=>e.remove());return;}
+  const ph=PHASES.find(p=>a.t>=p[0]&&a.t<p[1]);
+  phaseEl.innerHTML=ph?`${Math.min(140,Math.round(a.t))}ms — ${ph[2]} <span>· ${ph[3]}</span>`:'';
+  let bar=track.querySelector('i');
+  if(!bar){bar=document.createElement('i');track.appendChild(bar);}
+  const pct=Math.min(100,a.t);
+  bar.style.width=pct+'%';
+  bar.style.background=a.t<30?'linear-gradient(90deg,rgba(33,230,255,.15),var(--req))'
+    :a.t<102?'linear-gradient(90deg,rgba(33,230,255,.15),var(--bid))'
+    :'linear-gradient(90deg,rgba(255,79,216,.2),var(--win))';
+  bar.style.boxShadow='0 0 14px -2px currentColor';
+}
+
+/* ───────── 描画 ───────── */
+const COL={req:'#21E6FF',bid:'#FF4FD8',win:'#FFC53D',data:'#8B6BFF'};
+const LINKS=[['user','ssp'],['ssp','exch'],['exch','dsp0'],['exch','dsp1'],['exch','dsp2'],['exch','dsp3'],['dmp','dsp0'],['dmp','dsp1'],['dmp','dsp2'],['dmp','dsp3'],['adv','dsp0'],['adv','dsp1'],['adv','dsp2'],['adv','dsp3']];
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.lineWidth=1;
+  LINKS.forEach(([a,b])=>{
+    const p=anchors(a,b); if(!p)return;
+    ctx.strokeStyle='rgba(35,45,74,.75)';
+    ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);ctx.quadraticCurveTo(p[1].x,p[1].y,p[2].x,p[2].y);ctx.stroke();
+  });
+  ctx.globalCompositeOperation='lighter';
+  auctions.forEach(a=>{
+    a.parts.forEach(pt=>{
+      if(a.t<pt.t0||a.t>pt.t1+2)return;
+      const p=anchors(pt.from,pt.to); if(!p)return;
+      const t=Math.min(1,(a.t-pt.t0)/(pt.t1-pt.t0));
+      const c=COL[pt.color];
+      for(let i=0;i<7;i++){
+        const tt=t-i*0.045; if(tt<0)break;
+        const q=bez(p,tt), al=(1-i/7)**2;
+        ctx.beginPath();
+        ctx.fillStyle=c; ctx.globalAlpha=al*0.85;
+        ctx.arc(q.x,q.y,pt.size*(1-i*0.09),0,6.284); ctx.fill();
+      }
+      const head=bez(p,t);
+      ctx.globalAlpha=1; ctx.shadowBlur=16; ctx.shadowColor=c;
+      ctx.beginPath();ctx.fillStyle=c;ctx.arc(head.x,head.y,pt.size,0,6.284);ctx.fill();
+      ctx.shadowBlur=0;
+      if(pt.label&&t<0.92){
+        ctx.globalAlpha=.9;ctx.fillStyle=c;
+        ctx.font='600 10px ui-monospace,Menlo,monospace';ctx.textAlign='center';
+        ctx.fillText(pt.label,head.x,head.y-9);
+      }
+      ctx.globalAlpha=1;
+    });
+  });
+  ctx.globalCompositeOperation='source-over';
+}
+
+/* ───────── ループ ───────── */
+function tick(rt){
+  requestAnimationFrame(tick);
+  const dt=Math.min(64,rt-lastRT); lastRT=rt;
+  if(running){
+    const dms=dt/1000/MS2S*speed;
+    sim+=dms;
+    auctions.forEach(a=>a.t+=dms);
+    if(sim>nextAt){nextAt=sim+rnd(38,70); start();}
+  }
+  auctions.forEach(a=>{
+    if(a.t>=0&&!a.fired.u){a.fired.u=1;fire('user','req')}
+    if(a.t>=20&&!a.fired.e){a.fired.e=1;fire('exch','req');paintLadder(a)}
+    a.bids.forEach(b=>{if(a.t>=b.back+9&&!a.fired[b.dsp]){a.fired[b.dsp]=1;revealBid(a,b)}});
+    if(a.t>=102&&!a.fired.d){a.fired.d=1;markLosers(a);fire('exch','win')}
+    if(a.t>=138&&!a.fired.imp){a.fired.imp=1;fire('user','win');addLog(a)}
+  });
+  auctions=auctions.filter(a=>a.t<150);
+  paintPhase(auctions[auctions.length-1]);
+  draw();
+}
+function start(){
+  const a=newAuction(); a.parts=[];
+  const keep=P.length; schedule(a);
+  a.parts=P.splice(keep); auctions.push(a);
+}
+measure(); requestAnimationFrame(tick);
+if(reduce){phaseEl.innerHTML='<span>アニメーション低減モード — 「1回だけ流す」で再生できます</span>';}
+start();
+
+/* ───────── 操作 ───────── */
+const playBtn=$('#play');
+playBtn.setAttribute('aria-pressed',String(running));
+playBtn.textContent=running?'一時停止':'再生';
+playBtn.onclick=()=>{running=!running;playBtn.setAttribute('aria-pressed',String(running));playBtn.textContent=running?'一時停止':'再生';};
+$('#step').onclick=()=>{
+  if(running){running=false;playBtn.setAttribute('aria-pressed','false');playBtn.textContent='再生';}
+  auctions=[];start();
+  const a=auctions[0];let raf;
+  const run=()=>{a.t+=1.1*speed;
+    if(a.t>=20&&!a.fired.e){a.fired.e=1;fire('exch','req');paintLadder(a)}
+    a.bids.forEach(b=>{if(a.t>=b.back+9&&!a.fired[b.dsp]){a.fired[b.dsp]=1;revealBid(a,b)}});
+    if(a.t>=102&&!a.fired.d){a.fired.d=1;markLosers(a)}
+    if(a.t>=138&&!a.fired.imp){a.fired.imp=1;fire('user','win');addLog(a)}
+    paintPhase(a);draw();
+    if(a.t<150)raf=requestAnimationFrame(run);else auctions=[];};
+  run();
+};
+$('#sp').oninput=e=>{speed=+e.target.value;$('#spv').textContent=speed.toFixed(1)+'×';};
+
+const ex=$('#explain');
+function showExplain(key){
+  const k=key.startsWith('dsp')&&key!=='dmp'?'dsp':key;
+  const d=EXPLAIN[k]; if(!d)return;
+  ex.style.setProperty('--accent',d.c);
+  ex.innerHTML=`<h2>役割</h2><div class="title">${d.t}</div><div class="en">${d.en}</div>
+    ${d.p.map(p=>`<p>${p}</p>`).join('')}
+    <div class="kv">${d.kv.map(([a,b])=>`${a} … <b>${b}</b>`).join('<br>')}</div>`;
+  $$('.node').forEach(n=>n.classList.toggle('sel',n.dataset.key===key));
+}
+$$('.node').forEach(n=>n.addEventListener('click',()=>showExplain(n.dataset.key)));
+showExplain('exch');
+setTimeout(measure,60);
+})();
+</script>
+</body>
+</html>
