@@ -1,0 +1,27 @@
+{
+  "no": "001",
+  "title": "THE NIGHT WE SAW",
+  "titleJa": "あの夜、僕らが見た空",
+  "subtitle": "METEOR ROOFTOP",
+  "collection": "MIDNIGHT ROOFTOP COLLECTION",
+  "collectionJa": "ミッドナイト・ルーフトップ",
+  "technique": "CELESTIAL PRISM FOIL",
+  "tagline": "Three friends. One impossible sky.",
+  "edition": "001 / 001",
+  "rarity": "HOLOGRAPHIC",
+  "backMark": "星",
+  "description": "屋根の上に三人。降りやまない流星の下で、誰も帰ろうと言い出さない夜。傾けるたびに空の色が変わり、星が瞬きます。",
+  "assets": {
+    "model": "./assets/card.glb",
+    "background": "./assets/background.webp",
+    "text": "./assets/text.webp"
+  },
+  "parameters": {
+    "foil": 0.65,
+    "backgroundDepth": -0.25
+  },
+  "safeArea": {
+    "scale": 1.0,
+    "offset": [0.0, 0.0]
+  }
+}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE NIGHT WE SAW — カード図鑑 No.001 | Ryohei Ikoma</title>
+  <meta name="description" content="カード図鑑 No.001「THE NIGHT WE SAW」— 傾けると光の乗り方が変わる、ブラウザ上のホログラムカード。">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="../../icons/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500&family=Prompt:wght@100;200;300;400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="../cards.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+
+<body>
+
+  <header class="arch-header">
+    <a class="arch-header__home" href="../../index.html">Ryohei Ikoma</a>
+    <nav class="arch-header__nav">
+      <a href="../../index.html#works">Works</a>
+      <a href="../index.html">Card Collection</a>
+      <span aria-current="page">No.001</span>
+    </nav>
+  </header>
+
+  <main class="arch-main">
+
+    <div class="card-page">
+
+      <!-- Info -->
+      <section class="card-info">
+        <span class="card-no">No.<span id="card-no">001</span></span>
+        <p class="card-subtitle" id="card-subtitle">METEOR ROOFTOP</p>
+        <h1 class="card-title" id="card-title">THE NIGHT WE SAW</h1>
+        <p class="card-title-ja" id="card-title-ja">あの夜、僕らが見た空</p>
+
+        <p class="card-description" id="card-description">
+          屋根の上に三人。降りやまない流星の下で、誰も帰ろうと言い出さない夜。傾けるたびに空の色が変わり、星が瞬きます。
+        </p>
+        <p class="card-tagline" id="card-tagline">Three friends. One impossible sky.</p>
+
+        <div class="card-controls">
+          <h2>Handling</h2>
+          <div class="control-buttons">
+            <button id="auto" type="button" aria-pressed="false">自動で眺める</button>
+            <button id="flip" type="button">裏を見る</button>
+            <button id="reset" type="button">リセット</button>
+            <button id="save" type="button">画像で保存</button>
+          </div>
+
+          <label class="control" hidden>
+            <span>ホログラム強度</span>
+            <input id="foil" type="range" min="0" max="1.2" step="0.01" value="0.65">
+            <output id="foil-value">65%</output>
+          </label>
+
+          <label class="control" hidden>
+            <span>背景の奥行き</span>
+            <input id="depth" type="range" min="-0.65" max="0" step="0.01" value="-0.25">
+            <output id="depth-value">-0.25</output>
+          </label>
+        </div>
+      </section>
+
+      <!-- Stage -->
+      <section class="card-stage-column" aria-label="インタラクティブ・ホログラムカード">
+        <div id="stage" tabindex="0" role="img"
+          aria-label="操作できる3Dカード。ドラッグで回転、矢印キーで微調整、F で裏返し、R でリセット。">
+          <div class="stage-fallback" aria-hidden="true">
+            <img src="./cover.webp" alt="" width="720" height="1100">
+          </div>
+          <div id="loading" role="status">
+            <p>カードを読み込んでいます…</p>
+          </div>
+        </div>
+        <p class="view-label" id="view-label">FRONT ／ 表面</p>
+        <p class="stage-hint">ドラッグで回転 · ホイールで拡大縮小 · F で裏返し · R でリセット</p>
+      </section>
+
+    </div>
+
+    <!-- Spec + notes -->
+    <div class="card-lower">
+      <section class="card-spec">
+        <h2>Card Data</h2>
+        <dl>
+          <div>
+            <dt>Collection</dt>
+            <dd id="card-collection">MIDNIGHT ROOFTOP COLLECTION</dd>
+          </div>
+          <div>
+            <dt>Edition</dt>
+            <dd id="card-edition">001 / 001</dd>
+          </div>
+          <div>
+            <dt>Technique</dt>
+            <dd id="card-technique">CELESTIAL PRISM FOIL</dd>
+          </div>
+          <div>
+            <dt>Rarity</dt>
+            <dd id="card-rarity">HOLOGRAPHIC</dd>
+          </div>
+          <div>
+            <dt>Size</dt>
+            <dd>1024 × 1536 px ／ 2:3</dd>
+          </div>
+          <div>
+            <dt>Year</dt>
+            <dd>2026</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="card-notes">
+        <h2>Making</h2>
+        <p>
+          カード本体は Blender 4.4（Cycles）でモデリングし、glTF として書き出しています。ブラウザ側では three.js
+          がそのモデルを読み込み、背景アートと文字レイヤーをフラグメントシェーダーで毎フレーム合成しています。
+        </p>
+        <p>
+          光沢は画像に焼き込んだテクスチャではなく、カードの向きベクトルから計算した虹彩です。だから角度を変えるとスペクトルの帯が動き、背景だけがわずかに視差でずれ、星がまばらに瞬きます。静止画では出せない「傾けて見る」体験をそのまま置きたかった、という一枚です。
+        </p>
+        <p>
+          スライダーの調整はこのページのプレビューにだけ効きます。再読み込みすると初期値に戻ります。
+        </p>
+      </section>
+    </div>
+
+    <nav class="card-nav">
+      <a href="../index.html">← カード図鑑にもどる</a>
+      <span>No.002 準備中</span>
+    </nav>
+
+  </main>
+
+  <footer class="arch-footer">
+    <p>&copy; 2026 Ryohei Ikoma</p>
+  </footer>
+
+  <script type="module" src="../viewer.js"></script>
+</body>
+
+</html>
