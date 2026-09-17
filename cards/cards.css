@@ -511,6 +511,27 @@ a.archive-slot:hover .archive-slot__frame::after {
   color: var(--muted);
 }
 
+.making-loop {
+  margin: 0 0 1.6rem;
+}
+
+.making-loop video {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  background: #000;
+}
+
+.making-loop figcaption {
+  margin-top: 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.9;
+  color: #6a6a6a;
+}
+
 .card-nav {
   display: flex;
   justify-content: space-between;

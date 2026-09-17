@@ -168,7 +168,9 @@ void main(){
 const backFragment = shared + `
 uniform sampler2D tBack;
 void main(){
-  vec4 art = texture2D(tBack, vUv);
+  /* The back plane is seen from behind, so its u runs the other way: mirror it
+     or every glyph on the card back reads backwards. */
+  vec4 art = texture2D(tBack, vec2(1.0 - vUv.x, vUv.y));
   vec2 p = vUv - 0.5;
   float filigree = 0.5 + 0.5 * sin(length(p * vec2(1.0, 1.5)) * 100.0 + noise(p * 15.0) * 4.0);
   vec3 col = mix(vec3(0.025, 0.042, 0.064), vec3(0.085, 0.092, 0.110), filigree * 0.35);
@@ -380,6 +382,7 @@ function setupControls() {
     ["depth", "uBgDepth", (v) => Number(v).toFixed(2)],
   ];
   if (uniforms.tSubject) {
+    sliders.push(["subject-depth", "uDepth", (v) => Number(v).toFixed(2)]);
     sliders.push(["scale", "uScale", (v) => Number(v).toFixed(2)]);
   }
   for (const [id, name, format] of sliders) {

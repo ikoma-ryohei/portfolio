@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>THE NIGHT WE SAW — カード図鑑 No.001 | Ryohei Ikoma</title>
-  <meta name="description" content="カード図鑑 No.001「THE NIGHT WE SAW」— 傾けると光の乗り方が変わる、ブラウザ上のホログラムカード。">
+  <title>SHE WORE THE STARS — カード図鑑 No.002 | Ryohei Ikoma</title>
+  <meta name="description" content="カード図鑑 No.002「SHE WORE THE STARS」— 人物と背景が別レイヤーで浮く、ブラウザ上のホログラムカード。">
   <meta name="theme-color" content="#000000">
   <link rel="icon" href="../../icons/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">
@@ -34,7 +34,7 @@
     <nav class="arch-header__nav">
       <a href="../../index.html#works">Works</a>
       <a href="../index.html">Card Collection</a>
-      <span aria-current="page">No.001</span>
+      <span aria-current="page">No.002</span>
     </nav>
   </header>
 
@@ -44,15 +44,15 @@
 
       <!-- Info -->
       <section class="card-info">
-        <span class="card-no">No.<span id="card-no">001</span></span>
-        <p class="card-subtitle" id="card-subtitle">METEOR ROOFTOP</p>
-        <h1 class="card-title" id="card-title">THE NIGHT WE SAW</h1>
-        <p class="card-title-ja" id="card-title-ja">あの夜、僕らが見た空</p>
+        <span class="card-no">No.<span id="card-no">002</span></span>
+        <p class="card-subtitle" id="card-subtitle">STARLIGHT PORTRAIT</p>
+        <h1 class="card-title" id="card-title">SHE WORE THE STARS</h1>
+        <p class="card-title-ja" id="card-title-ja">星を縫いつけた人</p>
 
         <p class="card-description" id="card-description">
-          屋根の上に三人。降りやまない流星の下で、誰も帰ろうと言い出さない夜。傾けるたびに空の色が変わり、星が瞬きます。
+          紺と金の星をまとった一枚。人物と背景が別のレイヤーとして浮いているので、傾けると背景のボケだけが遅れて動き、輪郭に金の光が走ります。
         </p>
-        <p class="card-tagline" id="card-tagline">Three friends. One impossible sky.</p>
+        <p class="card-tagline" id="card-tagline">Stitched in starlight, lit from within.</p>
 
         <div class="card-controls">
           <h2>Handling</h2>
@@ -65,14 +65,26 @@
 
           <label class="control" hidden>
             <span>ホログラム強度</span>
-            <input id="foil" type="range" min="0" max="1.2" step="0.01" value="0.65">
-            <output id="foil-value">65%</output>
+            <input id="foil" type="range" min="0" max="1.2" step="0.01" value="0.5">
+            <output id="foil-value">50%</output>
           </label>
 
           <label class="control" hidden>
             <span>背景の奥行き</span>
-            <input id="depth" type="range" min="-0.65" max="0" step="0.01" value="-0.25">
-            <output id="depth-value">-0.25</output>
+            <input id="depth" type="range" min="-0.65" max="0" step="0.01" value="-0.35">
+            <output id="depth-value">-0.35</output>
+          </label>
+
+          <label class="control" hidden>
+            <span>人物の浮き</span>
+            <input id="subject-depth" type="range" min="0" max="0.8" step="0.01" value="0.6">
+            <output id="subject-depth-value">0.60</output>
+          </label>
+
+          <label class="control" hidden>
+            <span>人物の拡大率</span>
+            <input id="scale" type="range" min="0.9" max="1.4" step="0.01" value="1">
+            <output id="scale-value">1.00</output>
           </label>
         </div>
       </section>
@@ -82,7 +94,7 @@
         <div id="stage" tabindex="0" role="img"
           aria-label="操作できる3Dカード。ドラッグで回転、矢印キーで微調整、F で裏返し、R でリセット。">
           <div class="stage-fallback" aria-hidden="true">
-            <img src="./cover.webp" alt="" width="720" height="1100">
+            <img src="./cover.webp" alt="" width="720" height="1080">
           </div>
           <div id="loading" role="status">
             <p>カードを読み込んでいます…</p>
@@ -101,7 +113,7 @@
         <dl>
           <div>
             <dt>Collection</dt>
-            <dd id="card-collection">MIDNIGHT ROOFTOP COLLECTION</dd>
+            <dd id="card-collection">STARLIGHT PORTRAIT COLLECTION</dd>
           </div>
           <div>
             <dt>Edition</dt>
@@ -109,11 +121,15 @@
           </div>
           <div>
             <dt>Technique</dt>
-            <dd id="card-technique">CELESTIAL PRISM FOIL</dd>
+            <dd id="card-technique">PRISM SILVER FOIL</dd>
           </div>
           <div>
             <dt>Rarity</dt>
             <dd id="card-rarity">HOLOGRAPHIC</dd>
+          </div>
+          <div>
+            <dt>Layers</dt>
+            <dd>背景 ／ 人物 ／ 輪郭 の3層</dd>
           </div>
           <div>
             <dt>Size</dt>
@@ -129,12 +145,20 @@
       <section class="card-notes">
         <h2>Making</h2>
         <p>
-          カード本体は Blender 4.4（Cycles）でモデリングし、glTF として書き出しています。ブラウザ側では three.js
-          がそのモデルを読み込み、背景アートと文字レイヤーをフラグメントシェーダーで毎フレーム合成しています。
+          No.001 と違って、この一枚は人物がアルファ付きの独立したレイヤーとして切り出せています。だから傾けたときに背景のボケだけが遅れて流れ、人物はカードの手前に留まります。スライダーの「人物の浮き」を動かすと、その距離を直接いじれます。
         </p>
         <p>
-          光沢は画像に焼き込んだテクスチャではなく、カードの向きベクトルから計算した虹彩です。だから角度を変えるとスペクトルの帯が動き、背景だけがわずかに視差でずれ、星がまばらに瞬きます。静止画では出せない「傾けて見る」体験をそのまま置きたかった、という一枚です。
+          文字レイヤーは空のままにしました。タイトルも枠も入れず、金の小口と虹彩だけで持たせています。
         </p>
+
+        <figure class="making-loop">
+          <video src="./loop.mp4" poster="./cover.webp" width="560" height="840" autoplay muted loop playsinline
+            preload="metadata"></video>
+          <figcaption>
+            Blender 4.5（Cycles）で書き出した元のループ。左右 ±8° のヨーを 20fps × 3秒で回した60フレームで、上のリアルタイム版はこれを再構成しています。
+          </figcaption>
+        </figure>
+
         <p>
           スライダーの調整はこのページのプレビューにだけ効きます。再読み込みすると初期値に戻ります。
         </p>
@@ -142,8 +166,8 @@
     </div>
 
     <nav class="card-nav">
-      <a href="../index.html">← カード図鑑にもどる</a>
-      <a href="../starlight-portrait/index.html">No.002 SHE WORE THE STARS →</a>
+      <a href="../meteor-rooftop/index.html">← No.001 THE NIGHT WE SAW</a>
+      <a href="../index.html">カード図鑑にもどる</a>
     </nav>
 
   </main>

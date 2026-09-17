@@ -1,0 +1,30 @@
+{
+  "no": "002",
+  "title": "SHE WORE THE STARS",
+  "titleJa": "星を縫いつけた人",
+  "subtitle": "STARLIGHT PORTRAIT",
+  "collection": "STARLIGHT PORTRAIT COLLECTION",
+  "collectionJa": "スターライト・ポートレート",
+  "technique": "PRISM SILVER FOIL",
+  "tagline": "Stitched in starlight, lit from within.",
+  "edition": "001 / 001",
+  "rarity": "HOLOGRAPHIC",
+  "backMark": "煌",
+  "description": "紺と金の星をまとった一枚。人物と背景が別のレイヤーとして浮いているので、傾けると背景のボケだけが遅れて動き、輪郭に金の光が走ります。",
+  "assets": {
+    "model": "./assets/card.glb",
+    "background": "./assets/background.webp",
+    "subject": "./assets/subject.webp",
+    "lineart": "./assets/lineart.webp"
+  },
+  "parameters": {
+    "foil": 0.5,
+    "backgroundDepth": -0.35,
+    "subjectDepth": 0.6,
+    "subjectScale": 1.0
+  },
+  "safeArea": {
+    "scale": 1.0,
+    "offset": [0.0, 0.0]
+  }
+}
