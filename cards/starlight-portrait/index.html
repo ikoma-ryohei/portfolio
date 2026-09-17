@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SHE WORE THE STARS — カード図鑑 No.002 | Ryohei Ikoma</title>
-  <meta name="description" content="カード図鑑 No.002「SHE WORE THE STARS」— 人物と背景が別レイヤーで浮く、ブラウザ上のホログラムカード。">
+  <meta name="description" content="カード図鑑 No.002「SHE WORE THE STARS」— GIF 一枚だけで成立するホログラムカード。">
   <meta name="theme-color" content="#000000">
   <link rel="icon" href="../../icons/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">
@@ -17,14 +17,6 @@
     rel="stylesheet">
   <link rel="stylesheet" href="../../style.css">
   <link rel="stylesheet" href="../cards.css">
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-      }
-    }
-  </script>
 </head>
 
 <body>
@@ -44,64 +36,30 @@
 
       <!-- Info -->
       <section class="card-info">
-        <span class="card-no">No.<span id="card-no">002</span></span>
-        <p class="card-subtitle" id="card-subtitle">STARLIGHT PORTRAIT</p>
-        <h1 class="card-title" id="card-title">SHE WORE THE STARS</h1>
-        <p class="card-title-ja" id="card-title-ja">星を縫いつけた人</p>
+        <span class="card-no">No.002</span>
+        <p class="card-subtitle">STARLIGHT PORTRAIT</p>
+        <h1 class="card-title">SHE WORE THE STARS</h1>
+        <p class="card-title-ja">星を縫いつけた人</p>
 
-        <p class="card-description" id="card-description">
-          紺と金の星をまとった一枚。人物と背景が別のレイヤーとして浮いているので、傾けると背景のボケだけが遅れて動き、輪郭に金の光が走ります。
+        <p class="card-description">
+          紺と金の星をまとった一枚。人物と背景を別のレイヤーに分けてあるので、カードが振れるたびに背景のボケだけが遅れて流れ、輪郭を金の光がなぞります。
         </p>
-        <p class="card-tagline" id="card-tagline">Stitched in starlight, lit from within.</p>
+        <p class="card-tagline">Stitched in starlight, lit from within.</p>
 
-        <div class="card-controls">
-          <h2>Handling</h2>
-          <div class="control-buttons">
-            <button id="auto" type="button" aria-pressed="false">自動で眺める</button>
-            <button id="flip" type="button">裏を見る</button>
-            <button id="reset" type="button">リセット</button>
-            <button id="save" type="button">画像で保存</button>
-          </div>
-
-          <label class="control" hidden>
-            <span>ホログラム強度</span>
-            <input id="foil" type="range" min="0" max="1.2" step="0.01" value="0.5">
-            <output id="foil-value">50%</output>
-          </label>
-
-          <label class="control" hidden>
-            <span>背景の奥行き</span>
-            <input id="depth" type="range" min="-0.65" max="0" step="0.01" value="-0.35">
-            <output id="depth-value">-0.35</output>
-          </label>
-
-          <label class="control" hidden>
-            <span>人物の浮き</span>
-            <input id="subject-depth" type="range" min="0" max="0.8" step="0.01" value="0.6">
-            <output id="subject-depth-value">0.60</output>
-          </label>
-
-          <label class="control" hidden>
-            <span>人物の拡大率</span>
-            <input id="scale" type="range" min="0.9" max="1.4" step="0.01" value="1">
-            <output id="scale-value">1.00</output>
-          </label>
-        </div>
+        <p class="card-standalone">
+          右にあるのは GIF ファイルそのものです。3Dエンジンも JavaScript も使っていません。保存して Slack にでも
+          Discord にでも放り込めば、同じように光り続けます。
+        </p>
       </section>
 
-      <!-- Stage -->
-      <section class="card-stage-column" aria-label="インタラクティブ・ホログラムカード">
-        <div id="stage" tabindex="0" role="img"
-          aria-label="操作できる3Dカード。ドラッグで回転、矢印キーで微調整、F で裏返し、R でリセット。">
-          <div class="stage-fallback" aria-hidden="true">
-            <img src="./cover.webp" alt="" width="720" height="1080">
-          </div>
-          <div id="loading" role="status">
-            <p>カードを読み込んでいます…</p>
-          </div>
+      <!-- The card itself -->
+      <section class="card-stage-column" aria-label="ホログラムカード">
+        <div class="card-still">
+          <img class="card-still__poster" src="./cover.webp" alt="" width="720" height="1080">
+          <img class="card-still__gif" src="./card.gif" alt="SHE WORE THE STARS — 左右に揺れながら虹彩が流れるホログラムカード"
+            width="480" height="720">
         </div>
-        <p class="view-label" id="view-label">FRONT ／ 表面</p>
-        <p class="stage-hint">ドラッグで回転 · ホイールで拡大縮小 · F で裏返し · R でリセット</p>
+        <p class="view-label">GIF ／ 60 FRAMES ／ LOOP</p>
       </section>
 
     </div>
@@ -113,27 +71,31 @@
         <dl>
           <div>
             <dt>Collection</dt>
-            <dd id="card-collection">STARLIGHT PORTRAIT COLLECTION</dd>
+            <dd>STARLIGHT PORTRAIT COLLECTION</dd>
           </div>
           <div>
             <dt>Edition</dt>
-            <dd id="card-edition">001 / 001</dd>
+            <dd>001 / 001</dd>
           </div>
           <div>
             <dt>Technique</dt>
-            <dd id="card-technique">PRISM SILVER FOIL</dd>
+            <dd>PRISM SILVER FOIL</dd>
           </div>
           <div>
             <dt>Rarity</dt>
-            <dd id="card-rarity">HOLOGRAPHIC</dd>
+            <dd>HOLOGRAPHIC</dd>
           </div>
           <div>
-            <dt>Layers</dt>
-            <dd>背景 ／ 人物 ／ 輪郭 の3層</dd>
+            <dt>Format</dt>
+            <dd>GIF ／ 480 × 720 px ／ 2:3</dd>
           </div>
           <div>
-            <dt>Size</dt>
-            <dd>1024 × 1536 px ／ 2:3</dd>
+            <dt>Motion</dt>
+            <dd>60 フレーム ／ 20fps ／ 3秒ループ</dd>
+          </div>
+          <div>
+            <dt>File</dt>
+            <dd>6.3 MB ／ 単体で完結</dd>
           </div>
           <div>
             <dt>Year</dt>
@@ -145,22 +107,13 @@
       <section class="card-notes">
         <h2>Making</h2>
         <p>
-          No.001 と違って、この一枚は人物がアルファ付きの独立したレイヤーとして切り出せています。だから傾けたときに背景のボケだけが遅れて流れ、人物はカードの手前に留まります。スライダーの「人物の浮き」を動かすと、その距離を直接いじれます。
+          元になっているのは4枚のレイヤーです。人物をアルファ付きで抜き、その裏に人物のいない背景を描き起こし、輪郭だけを拾った線画を重ねています。それを Blender 4.5（Cycles）に持ち込み、人物を手前・背景を奥に離して置き、カードを左右 ±8° だけ往復させながら 20fps × 3秒、64サンプルで焼きました。
         </p>
         <p>
-          文字レイヤーは空のままにしました。タイトルも枠も入れず、金の小口と虹彩だけで持たせています。
+          焼いてしまえば、あとは GIF です。再生に何も要りません。計算していたはずの視差も虹彩も、60枚のフレームの中に固定されています。書き出した瞬間に、この一枚はこのサイトから独立します。
         </p>
-
-        <figure class="making-loop">
-          <video src="./loop.mp4" poster="./cover.webp" width="560" height="840" autoplay muted loop playsinline
-            preload="metadata"></video>
-          <figcaption>
-            Blender 4.5（Cycles）で書き出した元のループ。左右 ±8° のヨーを 20fps × 3秒で回した60フレームで、上のリアルタイム版はこれを再構成しています。
-          </figcaption>
-        </figure>
-
         <p>
-          スライダーの調整はこのページのプレビューにだけ効きます。再読み込みすると初期値に戻ります。
+          代わりに手放したものもあります。角度は選べず、往復の幅は決め打ちで、色は96色のパレットに落ちています。絵に見える細かなざらつきは、その量子化のディザです。
         </p>
       </section>
     </div>
@@ -176,7 +129,6 @@
     <p>&copy; 2026 Ryohei Ikoma</p>
   </footer>
 
-  <script type="module" src="../viewer.js"></script>
 </body>
 
 </html>
