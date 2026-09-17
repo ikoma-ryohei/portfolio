@@ -15,6 +15,9 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const HOME_X = 0.025;
 const HOME_Y = -0.13;
+/* Half-height of the orthographic frustum: tuned so the card nearly fills the
+   stage, leaving just enough margin for the gold edge when it turns. */
+const FRUSTUM_HALF = 5.1;
 
 let renderer, composer, root, uniforms, config;
 let auto = false;
@@ -30,7 +33,7 @@ let lastTime = 0;
 let elapsed = 0;
 
 const scene = new THREE.Scene();
-const camera = new THREE.OrthographicCamera(-5, 5, 5.65, -5.65, 0.1, 100);
+const camera = new THREE.OrthographicCamera(-5, 5, FRUSTUM_HALF, -FRUSTUM_HALF, 0.1, 100);
 camera.position.set(0, 0, 20);
 camera.lookAt(0, 0, 0);
 
@@ -330,7 +333,7 @@ function resize() {
   const w = stage.clientWidth;
   const h = stage.clientHeight;
   if (!w || !h || !renderer) return;
-  const halfH = 5.65 / targetZoom;
+  const halfH = FRUSTUM_HALF / targetZoom;
   const aspect = w / h;
   camera.left = -halfH * aspect;
   camera.right = halfH * aspect;

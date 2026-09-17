@@ -208,7 +208,7 @@ a.archive-slot:hover .archive-slot__frame::after {
 
 .card-page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
   gap: 4rem;
   align-items: start;
   padding: 3.5rem 0 0;
@@ -223,7 +223,7 @@ a.archive-slot:hover .archive-slot__frame::after {
   position: relative;
   aspect-ratio: 2 / 3;
   width: 100%;
-  max-height: 74vh;
+  max-height: 78vh;
   margin: 0 auto;
   display: grid;
   place-items: center;
