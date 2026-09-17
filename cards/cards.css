@@ -531,25 +531,19 @@ a.archive-slot:hover .archive-slot__frame::after {
   margin: 0 auto;
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
 
+/* The GIF frame carries its own margin around the card, so the card would sit
+   smaller here than the WebGL one on No.001. Scaling the frame up by the
+   inverse of that margin lands both cards at the same on-screen size; the
+   surplus is transparent, and the file itself is untouched. */
 .card-still img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: var(--card-radius);
-}
-
-/* The still cover holds the frame while several megabytes of GIF arrive; the
-   GIF is opaque, so it simply covers this once it paints. */
-.card-still__poster {
-  position: absolute;
-  inset: 0;
-}
-
-.card-still__gif {
-  position: relative;
+  transform: scale(1.265);
 }
 
 .card-nav {
