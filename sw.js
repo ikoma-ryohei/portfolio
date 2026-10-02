@@ -1,10 +1,11 @@
-const CACHE = "portfolio-v1";
+const CACHE = "portfolio-v2";
 
 const SHELL = [
   "./",
   "./index.html",
   "./style.css",
   "./script.js",
+  "./analytics.js",
   "./stars.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
