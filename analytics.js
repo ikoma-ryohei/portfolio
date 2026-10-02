@@ -1,6 +1,6 @@
 (() => {
   // GA4: set the web data stream's measurement ID here (G-XXXXXXXXXX).
-  const measurementId = "";
+  const measurementId = "G-75PBT0F7LE";
   const localHosts = ["localhost", "127.0.0.1", "[::1]"];
 
   if (
